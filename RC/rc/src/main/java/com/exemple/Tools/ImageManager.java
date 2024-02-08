@@ -40,6 +40,9 @@ public class ImageManager {
         addToManager("MenuPlay","/play_s.png");
         addToManager("MenuStop","/stop_s.png");
         addToManager("MenuDebug","/debug_s.png");
+        addToManager("ZoomIn","/zoomIn.png");
+        addToManager("ZoomOut","/zoomOut.png");
+        addToManager("Edit","/edit.png");
     }
 
     private void addToManager(String type, String path){

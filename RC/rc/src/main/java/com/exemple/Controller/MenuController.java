@@ -42,20 +42,37 @@ public class MenuController implements ActionListener {
             else
                 menuView.menuAlert("Operation annulee");
         }
-        else if(source == menuView.getRecentItem())
+        else if(source == MenuView.getRecentItem())
         {
         }
-        else if(source == menuView.getSaveItem())
+        else if(source == MenuView.getSaveItem())
         {
         }
-        else if(source == menuView.getSaveAsItem())
+        else if(source == MenuView.getSaveAsItem())
         {
         }
-        else if(source == menuView.getCloseItem())
+        else if(source == MenuView.getCloseItem())
         {
             menuView.close();
+        }else if(source == MenuView.getZoomOutMenu())
+        {
+            menuView.zoomOut();
         }
-
-
+        else if(source == MenuView.getZoomInMenu())
+        {
+            menuView.zoomIn();
+        }
+        else if(source == MenuView.getOpenEdit())
+        {
+            menuView.showEditMenu();
+        }
+        else if(source == MenuView.getCloseEdit())
+        {
+            menuView.hideMenu();
+        }
+        else if(source == MenuView.getDraw())
+        {
+            menuView.drawPoint();
+        }
     }
 }
