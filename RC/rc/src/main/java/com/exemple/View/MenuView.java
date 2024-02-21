@@ -1,15 +1,18 @@
 package main.java.com.exemple.View;
 
+import main.java.com.exemple.Controller.CustomMouseListener;
 import main.java.com.exemple.Controller.MenuController;
 import main.java.com.exemple.Tools.ImageManager;
-import main.java.com.exemple.Tools.RGBImageLoader;
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.formats.tiff.TiffImageParser;
+import org.apache.commons.imaging.formats.tiff.TiffImagingParameters;
+
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +42,7 @@ public class MenuView extends JFrame {
 
     private static JToolBar toolBar = new JToolBar();
 
-    private static JButton draw,erase,text,color,select;
+    private static JButton draw,erase,text;
 
     private static JScrollPane pane;
 
@@ -47,10 +50,14 @@ public class MenuView extends JFrame {
 
     private MenuController menuController;
 
+    private CustomMouseListener customMouseListener;
+
     private int imageWidth;
     private int imageHeight;
 
     private boolean isLoaded = false;
+    private boolean isDrawing = false;
+    private boolean isErasing = false;
 
     /**
      * Constructeur de MenuView en fonction de la taille et du niveau
@@ -63,6 +70,7 @@ public class MenuView extends JFrame {
 
         setIconImage(new ImageIcon(ImageManager.getInstance().getImage("MenuIcon")).getImage());
         menuController = new MenuController(this);
+        customMouseListener = new CustomMouseListener (this);
         pane = new JScrollPane(imageLabel);
         pane.setLayout(new ScrollPaneLayout());
         pane.setPreferredSize(this.getPreferredSize());
@@ -147,64 +155,59 @@ public class MenuView extends JFrame {
                 JOptionPane.WARNING_MESSAGE);
     }
 
-    public void drawPoint()
+    public void drawPoint(int x,int y)
     {
         if(isLoaded) {
-            p = new JPanel () {
-                Point pointStart = null;
-                Point pointEnd = null;
-
-                {
-                    System.out.println ("yes");
-                    addMouseListener (new MouseAdapter () {
-                        public void mousePressed (MouseEvent e) {
-                            pointStart = e.getPoint ();
-                            System.out.println (pointStart);
-                        }
-
-                        public void mouseReleased (MouseEvent e) {
-                            pointStart = null;
-                        }
-                    });
-                    addMouseMotionListener (new MouseMotionAdapter () {
-                        public void mouseMoved (MouseEvent e) {
-                            pointEnd = e.getPoint ();
-                        }
-
-                        public void mouseDragged (MouseEvent e) {
-                            pointEnd = e.getPoint ();
-                            repaint ();
-                        }
-                    });
-                }
-
-                public void paint (Graphics g) {
-                    super.paint (g);
-                    if (pointStart != null) {
-                        g.setColor (Color.RED);
-                        g.drawLine (pointStart.x, pointStart.y, pointEnd.x, pointEnd.y);
-                    }
-                }
-            };
-            pane.getViewport ().add (p, null);
+            Graphics graphics = image.getGraphics();
+            graphics.setColor (Color.BLUE);
+            graphics.drawRect (x,y,25,25);
+            graphics.fillRect (x,y,25,25);
+            repaint ();
+            graphics.dispose();
         }
         else
         {
             menuAlert ("Image not loaded");
         }
     }
-    public void loadImage(String path) {
-        try {
-            RGBImageLoader rgbImageLoader = new RGBImageLoader();
+
+    public void clearPoint(int x,int y)
+    {
+        if(isLoaded){
+            Graphics graphics = image.getGraphics();
+            graphics.setColor (getBackground ());
+            graphics.clearRect(x,y,25,25);
+            repaint();
+            graphics.dispose();
+        }
+        else
+        {
+            menuAlert ("Image not loaded");
+        }
+    }
+
+    public void loadImage(String path) throws IOException, ImageReadException {
+            imageLabel.addMouseListener (customMouseListener);
             image = ImageIO.read(new File(path));
             imageWidth = image.getWidth();
             imageHeight = image.getHeight();
-            image = rgbImageLoader.loadImage(new File(path), imageWidth, imageHeight, 100);
-            System.out.println(path);
+            if(path.contains ("tif"))
+            {
+                image = loadImageWithApacheImaging(path);
+            }
             imageLabel.setIcon(new ImageIcon(image));
             isLoaded = true;
-        } catch (IOException ex) {
-            // handle exception...
+    }
+
+    private static BufferedImage loadImageWithApacheImaging(String filePath) throws IOException, ImageReadException {
+        File file = new File(filePath);
+        ImageMetadata metadata = Imaging.getMetadata(file);
+        if (metadata != null) {
+            TiffImageParser tiffImageParser = new TiffImageParser ();
+            BufferedImage image = tiffImageParser.getBufferedImage (file,new TiffImagingParameters ());
+            return image;
+        } else {
+            throw new IOException("Unsupported image format or invalid TIFF file.");
         }
     }
 
@@ -229,9 +232,7 @@ public class MenuView extends JFrame {
         draw = new JButton("Dessiner");
         erase=new JButton("Effacer");
         text=new JButton("Ecrire");
-        color=new JButton("Coleur");
-        select=new JButton("Select");
-        initButtons(toolBar,draw,erase,text,color,select);
+        initButtons(toolBar,draw,erase,text);
 
     }
     public void showEditMenu()
@@ -293,7 +294,31 @@ public class MenuView extends JFrame {
         return isLoaded;
     }
 
-    public static JButton getDraw() {
+    public void setDrawing (boolean drawing) {
+        isDrawing = drawing;
+    }
+
+    public void setErasing (boolean erasing) {
+        isErasing = erasing;
+    }
+
+    public static JButton getDraw () {
         return draw;
+    }
+
+    public static JButton getErase () {
+        return erase;
+    }
+
+    public boolean isDrawing () {
+        return isDrawing;
+    }
+
+    public boolean isErasing () {
+        return isErasing;
+    }
+
+    public static JButton getText () {
+        return text;
     }
 }

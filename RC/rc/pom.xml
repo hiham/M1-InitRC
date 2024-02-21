@@ -23,12 +23,18 @@
       <artifactId>swingx</artifactId>
       <version>1.6.1</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/com.github.jai-imageio/jai-imageio-core -->
     <dependency>
-      <groupId>com.github.jai-imageio</groupId>
-      <artifactId>jai-imageio-core</artifactId>
-      <version>1.4.0</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-imaging</artifactId>
+      <version>1.0-alpha3</version>
     </dependency>
+    <dependency>
+      <groupId>com.exemple</groupId>
+      <artifactId>rc</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+
   </dependencies>
 
 
