@@ -1,21 +1,13 @@
 package main.java.com.exemple.View;
 
-import main.java.com.exemple.Controller.CustomMouseListener;
 import main.java.com.exemple.Controller.MenuController;
+import main.java.com.exemple.Tools.Cross;
 import main.java.com.exemple.Tools.ImageManager;
 import org.apache.commons.imaging.ImageReadException;
-import org.apache.commons.imaging.Imaging;
-import org.apache.commons.imaging.common.ImageMetadata;
-import org.apache.commons.imaging.formats.tiff.TiffImageParser;
-import org.apache.commons.imaging.formats.tiff.TiffImagingParameters;
-
-
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -24,10 +16,6 @@ import java.io.IOException;
 public class MenuView extends JFrame {
 
     private static JMenuBar menuBar;
-
-    private static BufferedImage image;
-
-    private static JLabel imageLabel = new JLabel();
 
     private static JMenu fileMenu = new JMenu("Fichier");
     private static JMenu editMenu = new JMenu("Edition");
@@ -38,26 +26,36 @@ public class MenuView extends JFrame {
     private static JButton zoomInMenu = new JButton();
     private static JButton zoomOutMenu = new JButton();
 
-    private static JMenuItem openItem, recentItem, saveItem, saveAsItem, closeItem, openEdit, closeEdit;
+    private static JMenuItem openItem, recentItem, saveItem, saveAsItem, closeItem, openEdit, closeEdit,year;
 
     private static JToolBar toolBar = new JToolBar();
 
-    private static JButton draw,erase,text;
+    private static JButton draw,erase,text,move,addTab,removeTab;
+
+    private static JTabbedPane tabbedPane;
 
     private static JScrollPane pane;
 
-    private static JPanel p;
+    private JPanel controlPanel = new JPanel();
 
     private MenuController menuController;
 
-    private CustomMouseListener customMouseListener;
+    private ArrayList<Cross> crossArrayList = new ArrayList<> ();
 
-    private int imageWidth;
-    private int imageHeight;
+    private ArrayList<CutView> cutViews = new ArrayList<> ();
 
-    private boolean isLoaded = false;
+    private JRadioButton moelle = new JRadioButton ();
+    private JRadioButton limite = new JRadioButton ();
+
+    private ButtonGroup typePoint = new ButtonGroup ();
+
+    private double zoomFactor;
+
+    private int imageWidth,imageHeight;
+
     private boolean isDrawing = false;
     private boolean isErasing = false;
+    private boolean isMoving = false;
 
     /**
      * Constructeur de MenuView en fonction de la taille et du niveau
@@ -70,19 +68,33 @@ public class MenuView extends JFrame {
 
         setIconImage(new ImageIcon(ImageManager.getInstance().getImage("MenuIcon")).getImage());
         menuController = new MenuController(this);
-        customMouseListener = new CustomMouseListener (this);
-        pane = new JScrollPane(imageLabel);
+        tabbedPane = new JTabbedPane ();
+        cutViews.add (new CutView (this));
+        pane = new JScrollPane(cutViews.get (0).getImageLabel ());
         pane.setLayout(new ScrollPaneLayout());
         pane.setPreferredSize(this.getPreferredSize());
-        addToPane(pane);
-        this.add(pane);
+        addToPane();
+        tabbedPane.add("Tab " + tabbedPane.getTabCount (),pane);
+        this.add (tabbedPane,BorderLayout.CENTER);
         this.setJMenuBar(menuBar);
         pack();
         setSize(width, height);
         startMenu();
         creatToolBar();
+        createButton();
+
     }
 
+    public void createButton() {
+        addTab = new JButton ("Add Tab");
+        removeTab = new JButton ("Remove Tab");
+        addTab.addActionListener (menuController);
+        removeTab.addActionListener (menuController);
+        controlPanel.add (addTab);
+        controlPanel.add (removeTab);
+        this.add (controlPanel,BorderLayout.SOUTH);
+
+    }
     public void startMenu() {
         setResizable(true);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -96,7 +108,7 @@ public class MenuView extends JFrame {
     /**
      * Procédure privée qui ajoute les boutons au panneau
      */
-    private void addToPane(Container pane) {
+    private void addToPane() {
         menuBar = new JMenuBar();
 
         openItem = new JMenuItem("Ouvrir");
@@ -107,6 +119,7 @@ public class MenuView extends JFrame {
 
         openEdit = new JMenuItem("Editer");
         closeEdit = new JMenuItem("Fermer");
+        year = new JMenuItem ("Saisir année");
 
         launchMenu.setIcon(new ImageIcon(ImageManager.getInstance().getImage("MenuPlay")));
         stopMenu.setIcon(new ImageIcon(ImageManager.getInstance().getImage("MenuStop")));
@@ -124,7 +137,7 @@ public class MenuView extends JFrame {
         addMenuB(zoomOutMenu, menuBar);
 
         addMenuItems(fileMenu, openItem, recentItem, saveItem, saveAsItem, closeItem);
-        addMenuItems(editMenu, openEdit, closeEdit);
+        addMenuItems(editMenu, openEdit,year, closeEdit);
     }
 
     public void close() {
@@ -155,69 +168,67 @@ public class MenuView extends JFrame {
                 JOptionPane.WARNING_MESSAGE);
     }
 
-    public void drawPoint(int x,int y)
+    public void drawPoint(int x, int y, int index, main.java.com.exemple.Tools.Type type)
     {
-        if(isLoaded) {
-            Graphics graphics = image.getGraphics();
-            graphics.setColor (Color.BLUE);
-            graphics.drawRect (x,y,25,25);
-            graphics.fillRect (x,y,25,25);
-            repaint ();
-            graphics.dispose();
+        cutViews.get (tabbedPane.getSelectedIndex ()).drawPoint (x,y,index,type);
+    }
+
+
+    public void replaceCross(Cross cross, int x, int y)
+    {
+        cutViews.get (tabbedPane.getSelectedIndex ()).replaceCross (cross,x,y);
+    }
+
+    public int clearPoint(int x,int y)
+    {
+       return cutViews.get (tabbedPane.getSelectedIndex ()).clearPoint (x,y);
+    }
+
+    public void setCutYear(String s)
+    {
+        if (s == null) {
+            menuAlert ("Operaiton annulee");
         }
-        else
-        {
-            menuAlert ("Image not loaded");
+        int year;
+        try {
+            year = Integer.parseInt(s);
+            cutViews.get (tabbedPane.getSelectedIndex ()).setYear (year);
+        } catch (NumberFormatException e) {
+            menuAlert("Annee invalide");
         }
     }
 
-    public void clearPoint(int x,int y)
-    {
-        if(isLoaded){
-            Graphics graphics = image.getGraphics();
-            graphics.setColor (getBackground ());
-            graphics.clearRect(x,y,25,25);
-            repaint();
-            graphics.dispose();
-        }
-        else
-        {
-            menuAlert ("Image not loaded");
-        }
-    }
-
-    public void loadImage(String path) throws IOException, ImageReadException {
-            imageLabel.addMouseListener (customMouseListener);
-            image = ImageIO.read(new File(path));
-            imageWidth = image.getWidth();
-            imageHeight = image.getHeight();
-            if(path.contains ("tif"))
+    public void loadImage(String path,String iName) throws IOException, ImageReadException {
+            new Thread (()-> {
+            try {
+                Thread.sleep (1000);
+                int tabIndex = tabbedPane.getSelectedIndex();
+                cutViews.get (tabIndex).loadImage(path);
+                tabbedPane.setTitleAt (tabIndex,iName);
+            } catch (InterruptedException | IOException | ImageReadException e)
             {
-                image = loadImageWithApacheImaging(path);
+                e.printStackTrace ();
             }
-            imageLabel.setIcon(new ImageIcon(image));
-            isLoaded = true;
+        }).start ();
     }
 
-    private static BufferedImage loadImageWithApacheImaging(String filePath) throws IOException, ImageReadException {
-        File file = new File(filePath);
-        ImageMetadata metadata = Imaging.getMetadata(file);
-        if (metadata != null) {
-            TiffImageParser tiffImageParser = new TiffImageParser ();
-            BufferedImage image = tiffImageParser.getBufferedImage (file,new TiffImagingParameters ());
-            return image;
-        } else {
-            throw new IOException("Unsupported image format or invalid TIFF file.");
-        }
+    public void addTab(){
+        cutViews.add (new CutView (this));
+        tabbedPane.addTab ("Tab " + tabbedPane.getTabCount (),new JScrollPane (cutViews.get (cutViews.size ()-1).getImageLabel()));
     }
 
-    public void zoomOut() {
-        if (image != null) {
-            imageWidth = (int) (imageWidth * 0.9);
-            imageHeight = (int) (imageHeight * 0.9);
-            imageLabel.setIcon(new ImageIcon(image.getScaledInstance(imageWidth, imageHeight, Image.SCALE_FAST)));
+    public void removeTab(){
+        if(cutViews.size () > 1)
+        {
+         int tabIndex = tabbedPane.getSelectedIndex();
+         tabbedPane.remove(tabIndex);
         }
+        else{
+            menuAlert ("Erreur dans la supression des onglets");
+        }
+
     }
+
 
     private void initButtons(JToolBar jToolBar,JButton...buttons)
     {
@@ -225,6 +236,11 @@ public class MenuView extends JFrame {
             b.addActionListener(this.menuController);
             jToolBar.add(b);
         }
+        typePoint.add (moelle);
+        typePoint.add (limite);
+        jToolBar.add (moelle);
+        jToolBar.add (limite);
+
     }
 
     private void creatToolBar()
@@ -232,7 +248,10 @@ public class MenuView extends JFrame {
         draw = new JButton("Dessiner");
         erase=new JButton("Effacer");
         text=new JButton("Ecrire");
-        initButtons(toolBar,draw,erase,text);
+        move = new JButton ("Deplacer");
+        moelle.setText ("Pour la moelle");
+        limite.setText ("Pour les limites");
+        initButtons(toolBar,draw,erase,text,move);
 
     }
     public void showEditMenu()
@@ -245,15 +264,61 @@ public class MenuView extends JFrame {
     {
         toolBar.setVisible(false);
     }
+
     public void zoomIn()
     {
-        if(image != null)
+        /*System.out.println (imageWidth + "||" + imageLabel.getWidth ());
+        if(image != null && imageWidth < 30500)
         {
-            imageWidth = (int) (imageWidth * 0.1) + imageWidth;
-            imageHeight =(int) (imageHeight * 0.1) + imageHeight ;
-            imageLabel.setIcon(new ImageIcon(image.getScaledInstance(imageWidth,imageHeight,Image.SCALE_SMOOTH)));
+            zoomFactor += 0.9;
+            updateImage();
+            zoom ();
+        }
+        else{
+            menuAlert ("Zoom impossible");
+        }*/
+    }
+
+    public void zoomOut() {
+        /*if (image != null) {
+            zoomFactor -= 0.9;
+            if (zoomFactor < 0.9) {
+                zoomFactor = 0.9;
+            }
+            updateImage();
+            zoom ();
+        }*/
+    }
+
+    private void zoom() {
+        for (Cross point : crossArrayList) {
+            System.out.println (point);
+            int newX = (int) (point.getCenter().getX() * zoomFactor);
+            int newY = (int) (point.getCenter().getY() * zoomFactor);
+            System.out.println (point);
+            replaceCross (point,newX,newY);
         }
     }
+
+
+    private void updateImage() {
+        imageWidth = (int) (imageWidth * zoomFactor);
+        imageHeight = (int) (imageHeight * zoomFactor);
+        //imageLabel.setIcon(new ImageIcon(image.getScaledInstance(imageWidth, imageHeight, Image.SCALE_FAST)));
+
+    }
+
+
+    public int showSaveOption()
+    {
+        Object[] options1 = { "Matrix", "DataText",
+                "Quit" };
+        int result = JOptionPane.showOptionDialog(this, null, "Choisir le type de traitement",
+                JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+                null, options1, null);
+        return result;
+    }
+
     public static JMenuItem getOpenItem() {
         return openItem;
     }
@@ -286,12 +351,16 @@ public class MenuView extends JFrame {
         return openEdit;
     }
 
+    public static JMenuItem getYear () {
+        return year;
+    }
+
     public static JMenuItem getCloseEdit() {
         return closeEdit;
     }
 
     public boolean isLoaded() {
-        return isLoaded;
+        return cutViews.get (tabbedPane.getSelectedIndex ()).isLoaded ();
     }
 
     public void setDrawing (boolean drawing) {
@@ -302,12 +371,20 @@ public class MenuView extends JFrame {
         isErasing = erasing;
     }
 
+    public void setMoving (boolean moving) {
+        isMoving = moving;
+    }
+
     public static JButton getDraw () {
         return draw;
     }
 
     public static JButton getErase () {
         return erase;
+    }
+
+    public static JButton getLaunchMenu () {
+        return launchMenu;
     }
 
     public boolean isDrawing () {
@@ -318,7 +395,51 @@ public class MenuView extends JFrame {
         return isErasing;
     }
 
+    public boolean isMoving () {
+        return isMoving;
+    }
+
     public static JButton getText () {
         return text;
+    }
+
+    public static JButton getMove () {
+        return move;
+    }
+
+    public static JButton getDebugMenu () {
+        return debugMenu;
+    }
+
+    public static JButton getAddTab () {
+        return addTab;
+    }
+
+    public static JButton getRemoveTab () {
+        return removeTab;
+    }
+
+    public ArrayList<Cross> getCrossArrayList () {
+        return cutViews.get (tabbedPane.getSelectedIndex ()).getCrossArrayList ();
+    }
+
+    public ArrayList<CutView> getCutViews () {
+        return cutViews;
+    }
+
+
+    private void printArray()
+    {
+        for (Cross cross:crossArrayList) {
+            System.out.println ("Point a l'index :" + crossArrayList.indexOf (cross) + "au coordonee X :"+ cross.getCenter().getX ()+" Y:" + cross.getCenter ().getY ());
+        }
+    }
+
+    public JRadioButton getMoelle () {
+        return moelle;
+    }
+
+    public JRadioButton getLimite () {
+        return limite;
     }
 }

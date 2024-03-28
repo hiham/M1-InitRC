@@ -1,7 +1,10 @@
 package main.java.com.exemple.Controller;
 
+import main.java.com.exemple.Tools.*;
+import main.java.com.exemple.View.GraphView;
 import main.java.com.exemple.View.MenuView;
 import org.apache.commons.imaging.ImageReadException;
+import org.jfree.ui.RefineryUtilities;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -23,6 +26,13 @@ public class MenuController implements ActionListener {
      * La vue du Menu
      */
     private MenuView menuView;
+
+    private String nameOfImage;
+
+    private ArrayList<Point> points = new ArrayList<> ();
+
+    private boolean isPointLoaded = false;
+
 
     /**
      * Constructeur de MenuController avec la vue du Menu et le numero de niveau
@@ -46,7 +56,8 @@ public class MenuController implements ActionListener {
             if (r == JFileChooser.APPROVE_OPTION)
             {
                 try {
-                    menuView.loadImage(j.getSelectedFile().getAbsolutePath());
+                    nameOfImage =  j.getSelectedFile().getName ();
+                    menuView.loadImage(j.getSelectedFile().getAbsolutePath(),nameOfImage);
                 } catch (IOException | ImageReadException e) {
                     e.printStackTrace ();
                 }
@@ -62,6 +73,28 @@ public class MenuController implements ActionListener {
         }
         else if(source == MenuView.getSaveAsItem())
         {
+            if(isPointLoaded)
+            {
+                if(menuView.getCrossArrayList().size () > 0)
+                {
+                    for (Cross c:menuView.getCrossArrayList()) {
+                        if(!points.contains (c.getCenter ()))
+                        points.add (c.getCenter ());
+                    }
+                }
+
+                int result = menuView.showSaveOption();
+                if(result == 0)
+                {
+                    DistanceMatrixWriter.writeDistanceMatrixToFile(points,"distance_matrix_"+nameOfImage+".txt");
+                }else if(result == 1)
+                {
+                    DistanceCalculator.writeDistancesToFile(points,"distance_"+nameOfImage+".txt");
+                }
+            }
+            else{
+                menuView.menuAlert ("Points not loaded");
+            }
         }
         else if(source == MenuView.getCloseItem())
         {
@@ -78,39 +111,91 @@ public class MenuController implements ActionListener {
         {
             menuView.showEditMenu();
         }
+        else if(source == MenuView.getYear ())
+        {
+            if(menuView.isLoaded ())
+            {
+                String yearInput = JOptionPane.showInputDialog(null, "Entrer une annee:");
+                menuView.setCutYear(yearInput);
+            }
+            else{
+                menuView.menuAlert ("Pas d'image");
+            }
+
+        }
         else if(source == MenuView.getCloseEdit())
         {
             menuView.hideMenu();
         }
         else if(source == MenuView.getDraw())
         {
+            isPointLoaded = true;
             menuView.setErasing(false);
+            menuView.setMoving (false);
             menuView.setDrawing (true);
         }
         else if(source == MenuView.getErase ())
         {
+            isPointLoaded = true;
             menuView.setDrawing (false);
+            menuView.setMoving (false);
             menuView.setErasing(true);
         }
-        else if(source == MenuView.getText ())
+        else if(source == MenuView.getMove ())
+        {
+            isPointLoaded = true;
+            menuView.setMoving (true);
+            menuView.setDrawing (false);
+            menuView.setErasing (false);
+        }
+        else if(source == MenuView.getText())
         {
             JFileChooser j = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
             int r = j.showOpenDialog(null);
             if (r == JFileChooser.APPROVE_OPTION)
             {
                 try {
-                    ArrayList<Point> points = extractPointsFromPosFile(j.getSelectedFile().getAbsolutePath());
+                    points = extractPointsFromPosFile(j.getSelectedFile().getAbsolutePath());
+                    isPointLoaded = true;
                     for (Point point : points) {
                         if(menuView.isLoaded ())
                         {
-                            menuView.drawPoint (point.x,point.y);
+                            menuView.drawPoint (point.x,point.y,-1, Type.LIMITE);
                         }
-                        System.out.println("X: " + point.x + ", Y: " + point.y);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
+        }else if(source == MenuView.getLaunchMenu ())
+        {
+            KitC.cCompiler ();
+        }
+        else if(source == MenuView.getDebugMenu ())
+        {
+            if(menuView.getCrossArrayList().size () > 0)
+            {
+                for (Cross c:menuView.getCrossArrayList()) {
+                    if(!points.contains (c.getCenter ()))
+                        points.add (c.getCenter ());
+                }
+            }
+
+            SwingUtilities.invokeLater(() -> {
+                GraphView chart = new GraphView(menuView.getCutViews (),
+                        "Chart " ,
+                        "Graphique d'acroissement");
+                chart.pack( );
+                RefineryUtilities.centerFrameOnScreen( chart );
+                chart.setVisible( true );
+                chart.setLocationRelativeTo (null);
+            });
+        }
+        else if(source == MenuView.getAddTab ())
+        {
+            menuView.addTab ();
+        }else if(source == MenuView.getRemoveTab ()) {
+            menuView.removeTab();
         }
     }
 
@@ -134,7 +219,6 @@ public class MenuController implements ActionListener {
                 }
             }
         }
-
         return points;
     }
 }
