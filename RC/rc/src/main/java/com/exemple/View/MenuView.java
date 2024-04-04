@@ -222,6 +222,7 @@ public class MenuView extends JFrame {
         {
          int tabIndex = tabbedPane.getSelectedIndex();
          tabbedPane.remove(tabIndex);
+         cutViews.remove (tabIndex);
         }
         else{
             menuAlert ("Erreur dans la supression des onglets");
@@ -309,10 +310,9 @@ public class MenuView extends JFrame {
     }
 
 
-    public int showSaveOption()
+    public int showSaveOption(String opt1,String opt2,String opt3)
     {
-        Object[] options1 = { "Matrix", "DataText",
-                "Quit" };
+        Object[] options1 = { opt1,opt2,opt3 };
         int result = JOptionPane.showOptionDialog(this, null, "Choisir le type de traitement",
                 JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, options1, null);

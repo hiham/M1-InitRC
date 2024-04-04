@@ -83,7 +83,7 @@ public class MenuController implements ActionListener {
                     }
                 }
 
-                int result = menuView.showSaveOption();
+                int result = menuView.showSaveOption("Matrix", "DataText", "Quit");
                 if(result == 0)
                 {
                     DistanceMatrixWriter.writeDistanceMatrixToFile(points,"distance_matrix_"+nameOfImage+".txt");
@@ -169,7 +169,21 @@ public class MenuController implements ActionListener {
             }
         }else if(source == MenuView.getLaunchMenu ())
         {
-            KitC.cCompiler ();
+            int result = menuView.showSaveOption ("Apprentissage","Sans Apprentissage","Quitter");
+            if(result == 0)
+            {
+                int res = menuView.showSaveOption ("Inference","Entrainement","Quitter");
+                if(res == 0)
+                {
+
+                }else if (res == 1)
+                {
+
+                }
+            }else if(result == 1)
+            {
+                KitC.cCompiler ();
+            }
         }
         else if(source == MenuView.getDebugMenu ())
         {

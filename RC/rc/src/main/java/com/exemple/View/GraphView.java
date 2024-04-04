@@ -80,37 +80,47 @@ public class GraphView extends JFrame {
     {
         for (int j = 0; j < points.get (i).getCrossArrayList ().size () - 1; j++) {
             double distance = calculateDistance(points.get (i).getCrossArrayList ().get (j).getCenter (),points.get (i).getCrossArrayList ().get (j+1).getCenter ());
-            serie.add (points.get(i).getYear() - j,distance);
+            serie.add (j,distance);
         }
 
     }
 
-    private void fillAverage(XYSeries series,ArrayList<CutView> points)
-    {
-        ArrayList<Integer> sumList = new ArrayList<>();
+
+    public void fillAverage(XYSeries series,ArrayList<CutView> points) {
+        // Find the maximum length among all lists
+        int maxLength = 0;
+        int index = 0;
+        for (CutView list : points) {
+            maxLength = Math.max(maxLength, list.getCrossArrayList ().size ());
+            index++;
+        }
+
+        // Initialize a list to store the sum of values at each index
+        ArrayList<Double> sumList = new ArrayList<>(maxLength);
+        ArrayList<Integer> indexes = new ArrayList<>(maxLength);
+
+        // Initialize sumList with zeros
+        for (int i = 0; i < maxLength; i++) {
+            sumList.add(0.0);
+            indexes.add (0);
+        }
 
         for (CutView obj : points) {
             for (int i = 0; i < obj.getCrossArrayList ().size () -1; i++) {
-                if (sumList.size() <= i) {
-                    sumList.add((int) calculateDistance(obj.getCrossArrayList ().get (i).getCenter (),obj.getCrossArrayList ().get (i+1).getCenter ()));
-                } else {
-                    sumList.set(i, sumList.get(i) + (int) calculateDistance(obj.getCrossArrayList ().get (i).getCenter (),obj.getCrossArrayList ().get (i+1).getCenter ()));
-                }
+                sumList.set(i, sumList.get(i) + (int) calculateDistance(obj.getCrossArrayList ().get (i).getCenter (),obj.getCrossArrayList ().get (i+1).getCenter ()));
+                indexes.set(i,indexes.get (i) + +1);
             }
         }
 
-        int numOfObjects = points.size();
-        int index = 0;
+        // Calculate the average of values at each index
+        int ix = 0;
         int year = 0;
-        for (Integer sum : sumList) {
-            int average = sum / numOfObjects;
-            if(index < numOfObjects)
-            {
-                year = points.get (index).getYear();
-            }
-            series.add (year - index ,average);
-            index++;
+        for (double sum : sumList) {
+            double average = sum / indexes.get (ix);
+            series.add (ix,average);
+            ix++;
         }
+
 
     }
 
