@@ -45,14 +45,6 @@ public class GraphView extends JFrame {
         }
 
         private XYDataset createDataset(ArrayList<CutView> points ) {
-            /*for (int i = 0; i < points.size() - 1; i++) {
-                double distance = calculateDistance(points.get(i), points.get(i+1));
-                values.add ((int) distance);
-            }
-            DefaultCategoryDataset dataset = new DefaultCategoryDataset( );
-            for (int i = 0; i < values.size () ; i++) {
-                dataset.addValue(values.get (i), "distance" , String.valueOf (i) );
-            }*/
             int index = 0;
             XYSeriesCollection dataset = new XYSeriesCollection ();
             for (int i = 0; i < points.size (); i++) {
