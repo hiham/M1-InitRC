@@ -175,10 +175,31 @@ public class MenuController implements ActionListener {
                 int res = menuView.showSaveOption ("Inference","Entrainement","Quitter");
                 if(res == 0)
                 {
-
+                    new Thread(() -> {
+                        try {
+                            KitC.runPythonScriptInference ("C:\\Users\\Utilisateur\\Documents\\InitR\\APP\\M1-InitRC\\approche_avec_apprentissage\\inference\\inference.py");
+                        } catch (IOException e) {
+                            e.printStackTrace ();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace ();
+                        }
+                    }).start();
                 }else if (res == 1)
                 {
-
+                    String input1 = JOptionPane.showInputDialog(null, "nommodele le nom que vous souhaité donner au modèle, une chaine de caractères:");
+                    String input2 = JOptionPane.showInputDialog(null, "wloss un entier (recommandé 3):");
+                    String input3 = JOptionPane.showInputDialog(null, "batch_size un entier (dépend de la mémoire de votre gpu):");
+                    String input4 = JOptionPane.showInputDialog(null, "imgSize:");
+                    String input5 = JOptionPane.showInputDialog(null, "nbE un entier (recommandé 40):");
+                    new Thread(() -> {
+                        try {
+                            KitC.runPythonScriptLearning (input1,input2,input3,input4,input5);
+                        } catch (IOException e) {
+                            e.printStackTrace ();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace ();
+                        }
+                    }).start();
                 }
             }else if(result == 1)
             {

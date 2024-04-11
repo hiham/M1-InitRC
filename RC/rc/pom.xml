@@ -29,11 +29,6 @@
       <version>1.0-alpha3</version>
     </dependency>
     <dependency>
-      <groupId>com.exemple</groupId>
-      <artifactId>rc</artifactId>
-      <version>1.0</version>
-    </dependency>
-    <dependency>
       <groupId>net.sf.jcharts</groupId>
       <artifactId>krysalis-jCharts</artifactId>
       <version>1.0.0-alpha-1</version>

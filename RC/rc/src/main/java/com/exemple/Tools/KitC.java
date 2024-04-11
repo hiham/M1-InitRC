@@ -30,4 +30,53 @@ public class KitC {
         }
     }
 
+    public static void runPythonScriptInference(String scriptPath) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder("python","-W","ignore", scriptPath,"C:\\Users\\Utilisateur\\Documents\\InitR\\APP\\M1-InitRC\\approche_avec_apprentissage\\inference\\test");
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        int exitCode = process.waitFor();
+        System.out.println("Python script execution completed with exit code: " + exitCode);
+    }
+
+    public static void runPythonScriptLearning(String nomModel,String wLoss,String batch_size,String imgSize,String nbE) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder("python","C:\\Users\\Utilisateur\\Documents\\InitR\\APP\\M1-InitRC\\approche_avec_apprentissage\\entrainement\\pTileMaker.py","74","256");
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        int exitCode = process.waitFor();
+        if (exitCode == 0) {
+            System.out.println("Python script finished successfully.");
+            //runPythonScriptTrain(nomModel, wLoss, batch_size, imgSize, nbE);
+        } else {
+            // Script exited with an error, handle accordingly
+            System.err.println("Python script exited with error code: " + exitCode);
+        }
+    }
+
+    public static void runPythonScriptTrain(String nomModel,String wLoss,String batch_size,String imgSize,String nbE) throws IOException, InterruptedException {
+        //python main.py train --logname <nommodele> --wloss <wLoss> --batch_size <batch_size> --img_size <img> --nepochs <nbE>
+        ProcessBuilder pb = new ProcessBuilder(
+                "python",
+                "C:\\Users\\Utilisateur\\Documents\\InitR\\APP\\M1-InitRC\\approche_avec_apprentissage\\entrainement\\main.py",
+                "--logname",nomModel, "--wloss" ,wLoss, "--batch_size" ,batch_size, "--img_size", imgSize,"--nepochs", nbE);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        int exitCode = process.waitFor();
+        System.out.println("Python script execution completed with exit code: " + exitCode);
+    }
+
 }
