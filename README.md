@@ -34,6 +34,12 @@ IntelliJ IDEA est un environnement de développement intégré (IDE) populaire p
 4. **Construction et exécution** : Vous pouvez maintenant construire et exécuter votre projet Maven à l'aide d'IntelliJ IDEA. Les dépendances Maven seront gérées automatiquement.
 
 ## Utilisation
+
+Installation des prérequis 
+```
+./install_python.sh
+```
+
 Ce placer à l'endroit ou se situe le pom.xml puis éxecuter
 
 ```
