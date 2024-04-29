@@ -49,10 +49,6 @@ public class MenuView extends JFrame {
 
     private ButtonGroup typePoint = new ButtonGroup ();
 
-    private double zoomFactor;
-
-    private int imageWidth,imageHeight;
-
     private boolean isDrawing = false;
     private boolean isErasing = false;
     private boolean isMoving = false;
@@ -266,49 +262,16 @@ public class MenuView extends JFrame {
         toolBar.setVisible(false);
     }
 
-    public void zoomIn()
-    {
-        /*System.out.println (imageWidth + "||" + imageLabel.getWidth ());
-        if(image != null && imageWidth < 30500)
-        {
-            zoomFactor += 0.9;
-            updateImage();
-            zoom ();
-        }
-        else{
-            menuAlert ("Zoom impossible");
-        }*/
+    public void zoomIn() {
+        int tabIndex = tabbedPane.getSelectedIndex();
+        cutViews.get (tabIndex).zoomIn ();
+
     }
 
     public void zoomOut() {
-        /*if (image != null) {
-            zoomFactor -= 0.9;
-            if (zoomFactor < 0.9) {
-                zoomFactor = 0.9;
-            }
-            updateImage();
-            zoom ();
-        }*/
+        int tabIndex = tabbedPane.getSelectedIndex();
+        cutViews.get (tabIndex).zoomOut ();
     }
-
-    private void zoom() {
-        for (Cross point : crossArrayList) {
-            System.out.println (point);
-            int newX = (int) (point.getCenter().getX() * zoomFactor);
-            int newY = (int) (point.getCenter().getY() * zoomFactor);
-            System.out.println (point);
-            replaceCross (point,newX,newY);
-        }
-    }
-
-
-    private void updateImage() {
-        imageWidth = (int) (imageWidth * zoomFactor);
-        imageHeight = (int) (imageHeight * zoomFactor);
-        //imageLabel.setIcon(new ImageIcon(image.getScaledInstance(imageWidth, imageHeight, Image.SCALE_FAST)));
-
-    }
-
 
     public int showSaveOption(String opt1,String opt2,String opt3)
     {

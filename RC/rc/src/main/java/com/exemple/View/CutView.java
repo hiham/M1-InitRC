@@ -25,10 +25,12 @@ public class CutView {
     private JLabel imageLabel;
     private MenuView menuView;
     private ArrayList<Cross> crossArrayList = new ArrayList<> ();
+    private ArrayList<Cross> drawnCrosses = new ArrayList<> ();
     private BufferedImage image;
-    private int imageWidth,imageHeight;
+    private int imageWidth,imageHeight,ogWidth;
     private boolean isLoaded = false;
     private  int year = 0;
+    private double zoomFactor = 100;
     private CustomMouseListener customMouseListener;
 
     public CutView(MenuView m)
@@ -63,6 +65,7 @@ public class CutView {
     public void loadImage(String path) throws IOException, ImageReadException {
         imageLabel.addMouseListener (customMouseListener);
         image = ImageIO.read(new File (path));
+        ogWidth = image.getWidth ();
         imageWidth = image.getWidth();
         imageHeight = image.getHeight();
         if(path.contains ("tif"))
@@ -121,7 +124,7 @@ public class CutView {
                 crossArrayList.remove (index);
                 crossArrayList.add (index, new Cross (new Line2D.Float(x-10,y,x+10,y),new Line2D.Float(x,y-10,x,y+10)));
                 crossArrayList.sort (Comparator.comparing (p -> p.getCenter ().getX ()));
-                imageLabel.repaint ();
+                imageLabel.repaint();
             }
         }
     }
@@ -177,4 +180,65 @@ public class CutView {
         }
         return false;
     }
+
+    public void zoomIn()
+    {
+        try {
+            if(image != null && zoomFactor <= 100)
+            {
+                zoomFactor += 5;
+                updateImage();
+                zoom ();
+            }
+            else{
+                menuAlert ("Zoom impossible");
+            }
+
+        } catch (ArrayIndexOutOfBoundsException e)
+        {
+            menuAlert ("Zoom impossible");
+        }
+    }
+
+    public void zoomOut() {
+        if (image != null && zoomFactor >= 5) {
+            zoomFactor -= 5;
+            updateImage();
+            zoom ();
+        }else{
+            menuAlert ("Zoom impossible");
+        }
+
+    }
+
+    private void zoom() {
+        if(isLoaded) {
+            ArrayList<Cross> crosses = new ArrayList<> ();
+            for (Cross point : crossArrayList) {
+                System.out.println (point);
+                int newX = (int) (point.getOriginalCenter ().getX () * zoomFactor / 100);
+                int newY = (int) (point.getOriginalCenter ().getY () * zoomFactor / 100);
+                crosses.add (new Cross (new Line2D.Float ((float)(newX - (10* zoomFactor / 100)), newY, (float) (newX + (10* zoomFactor / 100)), newY), new Line2D.Float (newX, (float)( newY - (10* zoomFactor / 100)), newX, (float)( newY + (10* zoomFactor / 100))), point.getOriginalCenter ()));
+                System.out.println (crosses.get (0));
+                crosses.sort (Comparator.comparing (p -> p.getCenter ().getX ()));
+            }
+            crossArrayList.clear ();
+            crossArrayList.addAll (crosses);
+            imageLabel.repaint ();
+        }
+    }
+
+
+    private void updateImage() {
+        try {
+            System.out.println (zoomFactor);
+            int W = (int) (imageWidth * zoomFactor/100);
+            int H = (int) (imageHeight * zoomFactor/100);
+            System.out.println (imageWidth + "||" + imageHeight + "||" + ogWidth);
+            imageLabel.setIcon(new ImageIcon(image.getScaledInstance(W, H, Image.SCALE_SMOOTH)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

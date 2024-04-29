@@ -8,6 +8,7 @@ public class Cross {
     private Line2D horizontalLine ;
     private Line2D verticaline;
     private Point center;
+    private Point originalCenter;
     private Type type;
 
     public Cross(Line2D h,Line2D v)
@@ -16,6 +17,16 @@ public class Cross {
         verticaline = v;
         type = Type.LIMITE;
         center = new Point ((int) verticaline.getX1 (),(int) horizontalLine.getY1 ());
+        originalCenter = center;
+    }
+
+    public Cross(Line2D h,Line2D v,Point c)
+    {
+        horizontalLine = h;
+        verticaline = v;
+        type = Type.LIMITE;
+        center = new Point ((int) verticaline.getX1 (),(int) horizontalLine.getY1 ());
+        originalCenter = c;
     }
 
     public Cross(Cross cross)
@@ -35,6 +46,10 @@ public class Cross {
 
     public Point getCenter () {
         return center;
+    }
+
+    public Point getOriginalCenter () {
+        return originalCenter;
     }
 
     public Cross getCrossWithCenter(Point point)
